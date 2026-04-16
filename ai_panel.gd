@@ -11,7 +11,7 @@ var http_request
 const SAVE_PATH = "user://sceneai_config.cfg"
 
 const PROVIDERS = {
-	"Groq (безкоштовно)": {
+	"Groq (free)": {
 		"url": "https://api.groq.com/openai/v1/chat/completions",
 		"model": "llama-3.1-8b-instant"
 	},
@@ -27,7 +27,7 @@ const PROVIDERS = {
 		"url": "https://api.openai.com/v1/chat/completions",
 		"model": "gpt-4o-mini"
 	},
-	"OpenRouter (100+ моделей)": {
+	"OpenRouter (100+ models)": {
 		"url": "https://openrouter.ai/api/v1/chat/completions",
 		"model": "meta-llama/llama-3.2-3b-instruct:free"
 	},
@@ -70,27 +70,27 @@ func setup_ui():
 	vbox.add_child(key_label)
 	
 	api_key_field = LineEdit.new()
-	api_key_field.placeholder_text = "Встав свій API ключ..."
+	api_key_field.placeholder_text = "Paste your API key..."
 	api_key_field.secret = true
 	api_key_field.text_changed.connect(_on_key_changed)
 	vbox.add_child(api_key_field)
 	
 	var save_hint = Label.new()
-	save_hint.text = "✓ Ключ зберігається автоматично"
+	save_hint.text = "✓ Key saved automatically"
 	save_hint.add_theme_color_override("font_color", Color(0.5, 1, 0.5))
 	vbox.add_child(save_hint)
 	
 	var question_label = Label.new()
-	question_label.text = "Питання:"
+	question_label.text = "Question:"
 	vbox.add_child(question_label)
 	
 	input_field = TextEdit.new()
-	input_field.placeholder_text = "Опиши проблему або помилку..."
+	input_field.placeholder_text = "Describe your problem or error..."
 	input_field.custom_minimum_size = Vector2(0, 60)
 	vbox.add_child(input_field)
 	
 	ask_button = Button.new()
-	ask_button.text = "🔍 Ask AI з контекстом сцени"
+	ask_button.text = "🔍 Ask AI with scene context"
 	ask_button.pressed.connect(_on_ask_pressed)
 	vbox.add_child(ask_button)
 	
@@ -127,11 +127,11 @@ func get_scene_context() -> String:
 	var context = ""
 	var edited_scene = EditorInterface.get_edited_scene_root()
 	if edited_scene:
-		context += "ПОТОЧНА СЦЕНА: " + edited_scene.name + "\n"
-		context += "НОДИ:\n"
+		context += "CURRENT SCENE: " + edited_scene.name + "\n"
+		context += "NODES:\n"
 		context += get_node_tree(edited_scene, 0)
 	else:
-		context += "СЦЕНА: не відкрита\n"
+		context += "SCENE: not open\n"
 	return context
 
 func get_node_tree(node: Node, depth: int) -> String:
@@ -147,21 +147,21 @@ func _on_ask_pressed():
 	var api_key = api_key_field.text.strip_edges()
 	
 	if question.is_empty():
-		output_label.text = "[color=red]Опиши проблему![/color]"
+		output_label.text = "[color=red]Please describe your problem![/color]"
 		return
 	
 	if api_key.is_empty():
-		output_label.text = "[color=red]Встав API ключ![/color]"
+		output_label.text = "[color=red]Please enter your API key![/color]"
 		return
 	
-	output_label.text = "[color=yellow]Аналізую твою сцену...[/color]"
+	output_label.text = "[color=yellow]Analyzing your scene...[/color]"
 	ask_button.disabled = true
 	
 	var provider_name = provider_option.get_item_text(provider_option.selected)
 	var provider = PROVIDERS[provider_name]
 	var scene_context = get_scene_context()
 	
-	var full_prompt = "Ти senior Godot 4 розробник. Відповідай коротко українською.\n\nКОНТЕКСТ СЦЕНИ:\n" + scene_context + "\nПИТАННЯ: " + question
+	var full_prompt = "You are a senior Godot 4 developer. ALWAYS respond in English only. Be concise and specific.\n\nSCENE CONTEXT:\n" + scene_context + "\nQUESTION: " + question
 	
 	var body = JSON.stringify({
 		"model": provider["model"],
@@ -182,7 +182,7 @@ func _on_response(result, response_code, headers, body):
 	ask_button.disabled = false
 	
 	if response_code != 200:
-		output_label.text = "[color=red]Помилка: " + str(response_code) + "[/color]"
+		output_label.text = "[color=red]Error: " + str(response_code) + "[/color]"
 		return
 	
 	var json = JSON.new()
